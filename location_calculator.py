@@ -4,7 +4,6 @@ from astropy.coordinates import SkyCoord, EarthLocation, AltAz
 from astropy.time import Time
 from astropy import units as u
 from star_database import StarDatabase
-from utils import ra_to_decimal
 
 def calculate_location(solved_data, observation_time):
     db = StarDatabase()
@@ -18,7 +17,6 @@ def calculate_location(solved_data, observation_time):
             db_coord = SkyCoord(db_star[2], db_star[3], unit=(u.deg, u.deg))
             if solved_coord.separation(db_coord) < 0.1 * u.deg:
                 matched_stars.append((solved_star, db_star))
-                break
 
     if len(matched_stars) < 3:
         raise ValueError("Not enough stars matched for location calculation")
