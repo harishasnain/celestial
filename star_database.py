@@ -1,31 +1,21 @@
-import sqlite3
+from astropy.io import ascii
+from astropy.coordinates import SkyCoord
+from astropy import units as u
 
 class StarDatabase:
     def __init__(self, file_path='bsc5.dat'):
         self.stars = self._load_stars(file_path)
 
     def _load_stars(self, file_path):
+        data = ascii.read(file_path, format='fixed_width',
+                          col_starts=(0, 4, 75, 83, 102),
+                          col_ends=(4, 14, 83, 90, 107),
+                          names=['id', 'name', 'ra', 'dec', 'magnitude'])
+        
         stars = []
-        with open(file_path, 'r') as file:
-            for line in file:
-                # Parse each line of the bsc5.dat file
-                # The format is fixed-width, so we'll use string slicing
-                star_id = int(line[0:4])
-                ra_hours = float(line[75:77])
-                ra_minutes = float(line[77:79])
-                ra_seconds = float(line[79:83])
-                dec_degrees = float(line[84:86])
-                dec_minutes = float(line[86:88])
-                dec_seconds = float(line[88:90])
-                magnitude = float(line[102:107])
-
-                # Convert RA and Dec to decimal degrees
-                ra = (ra_hours + ra_minutes/60 + ra_seconds/3600) * 15  # 15 degrees per hour
-                dec = dec_degrees + dec_minutes/60 + dec_seconds/3600
-                if line[83] == '-':
-                    dec = -dec
-
-                stars.append((star_id, None, ra, dec, magnitude))
+        for row in data:
+            coords = SkyCoord(row['ra'], row['dec'], unit=(u.hourangle, u.deg))
+            stars.append((row['id'], row['name'], coords.ra.deg, coords.dec.deg, row['magnitude']))
         return stars
 
     def get_all_stars(self):
